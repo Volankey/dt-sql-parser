@@ -5,6 +5,11 @@
 import { ErrorNode, ParseTreeListener, ParserRuleContext, TerminalNode } from "antlr4ng";
 
 
+import { SQLParserBase } from '../SQLParserBase';
+
+
+import { ProgramContext } from "./SQLiteParser.js";
+import { SingleStmtContext } from "./SQLiteParser.js";
 import { ParseContext } from "./SQLiteParser.js";
 import { Sql_stmt_listContext } from "./SQLiteParser.js";
 import { Sql_stmtContext } from "./SQLiteParser.js";
@@ -125,6 +130,26 @@ import { Any_nameContext } from "./SQLiteParser.js";
  * `SQLiteParser`.
  */
 export class SQLiteParserListener implements ParseTreeListener {
+    /**
+     * Enter a parse tree produced by `SQLiteParser.program`.
+     * @param ctx the parse tree
+     */
+    enterProgram?: (ctx: ProgramContext) => void;
+    /**
+     * Exit a parse tree produced by `SQLiteParser.program`.
+     * @param ctx the parse tree
+     */
+    exitProgram?: (ctx: ProgramContext) => void;
+    /**
+     * Enter a parse tree produced by `SQLiteParser.singleStmt`.
+     * @param ctx the parse tree
+     */
+    enterSingleStmt?: (ctx: SingleStmtContext) => void;
+    /**
+     * Exit a parse tree produced by `SQLiteParser.singleStmt`.
+     * @param ctx the parse tree
+     */
+    exitSingleStmt?: (ctx: SingleStmtContext) => void;
     /**
      * Enter a parse tree produced by `SQLiteParser.parse`.
      * @param ctx the parse tree

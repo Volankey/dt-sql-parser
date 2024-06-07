@@ -22,8 +22,10 @@
  * Developed by : Bart Kiers, bart@big-o.nl
  */
 
-// $antlr-format alignTrailingComments on, columnLimit 150, maxEmptyLinesToKeep 1, reflowComments off, useTab off
-// $antlr-format allowShortRulesOnASingleLine on, alignSemicolons ownLine
+// $antlr-format alignTrailingComments true, columnLimit 150, maxEmptyLinesToKeep 1, reflowComments false, useTab false
+// $antlr-format allowShortRulesOnASingleLine true, allowShortBlocksOnASingleLine true, minEmptyLines 0, alignSemicolons none, alignColons trailing
+// $antlr-format singleLineOverrulesHangingColon true, alignLexerCommands true, alignLabels true, alignTrailers true
+// $antlr-format spaceBeforeAssignmentOperators false, groupedAlignments true
 
 lexer grammar SQLiteLexer;
 
@@ -222,8 +224,7 @@ IDENTIFIER:
     '"' (~'"' | '""')* '"'
     | '`' (~'`' | '``')* '`'
     | '[' ~']'* ']'
-    | [A-Z_\u007F-\uFFFF] [A-Z_0-9\u007F-\uFFFF]*
-;
+    | [A-Z_\u007F-\uFFFF] [A-Z_0-9\u007F-\uFFFF]*;
 
 NUMERIC_LITERAL: ((DIGIT+ ('.' DIGIT*)?) | ('.' DIGIT+)) ('E' [-+]? DIGIT+)? | '0x' HEX_DIGIT+;
 

@@ -5,6 +5,11 @@
 import { AbstractParseTreeVisitor } from "antlr4ng";
 
 
+import { SQLParserBase } from '../SQLParserBase';
+
+
+import { ProgramContext } from "./SQLiteParser.js";
+import { SingleStmtContext } from "./SQLiteParser.js";
 import { ParseContext } from "./SQLiteParser.js";
 import { Sql_stmt_listContext } from "./SQLiteParser.js";
 import { Sql_stmtContext } from "./SQLiteParser.js";
@@ -128,6 +133,18 @@ import { Any_nameContext } from "./SQLiteParser.js";
  * operations with no return type.
  */
 export class SQLiteParserVisitor<Result> extends AbstractParseTreeVisitor<Result> {
+    /**
+     * Visit a parse tree produced by `SQLiteParser.program`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitProgram?: (ctx: ProgramContext) => Result;
+    /**
+     * Visit a parse tree produced by `SQLiteParser.singleStmt`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSingleStmt?: (ctx: SingleStmtContext) => Result;
     /**
      * Visit a parse tree produced by `SQLiteParser.parse`.
      * @param ctx the parse tree
