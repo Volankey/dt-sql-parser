@@ -1,4 +1,13 @@
-export { MySQL, FlinkSQL, SparkSQL, HiveSQL, PostgreSQL, TrinoSQL, ImpalaSQL } from './parser';
+export {
+    MySQL,
+    FlinkSQL,
+    SparkSQL,
+    HiveSQL,
+    PostgreSQL,
+    TrinoSQL,
+    ImpalaSQL,
+    Mongo,
+} from './parser';
 
 export {
     MySqlParserListener,
@@ -17,6 +26,8 @@ export {
     ImpalaSqlParserVisitor,
     SQLiteParserListener,
     SQLiteParserVisitor,
+    MongoParserListener,
+    MongoParserVisitor,
 } from './lib';
 
 export { EntityContextType } from './parser/common/types';

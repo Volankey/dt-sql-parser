@@ -17,6 +17,14 @@ export enum StmtContextType {
     SELECT_STMT = 'selectStmt',
     INSERT_STMT = 'insertStmt',
     CREATE_FUNCTION_STMT = 'createFunctionStmt',
+
+    // mongo
+    COLLECTION = 'collection',
+    COMMANDS = 'commands',
+    COMMAND = 'command',
+    ARGUMENTS = 'arguments',
+    DB_FUNCTION_CALL = 'dbFunctionCall',
+    COLLECTION_FUNCTION_CALL = 'collectionFunctionCall',
 }
 
 export interface StmtContext {

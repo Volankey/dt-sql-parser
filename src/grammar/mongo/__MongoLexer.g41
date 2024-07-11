@@ -1,0 +1,56 @@
+// $antlr-format alignTrailingComments true, columnLimit 150, maxEmptyLinesToKeep 1, reflowComments false, useTab false
+// $antlr-format allowShortRulesOnASingleLine true, allowShortBlocksOnASingleLine true, minEmptyLines 0, alignSemicolons none, alignColons trailing
+// $antlr-format singleLineOverrulesHangingColon true, alignLexerCommands true, alignLabels true, alignTrailers true
+// $antlr-format spaceBeforeAssignmentOperators false, groupedAlignments true
+
+lexer grammar MongoLexer;
+
+KW_DB: 'db';
+
+SEMICOLON : ';';
+DOT       : '.';
+
+LF                 : '\n';
+CRLF               : '\r\n';
+OPENED_PARENTHESIS : '(';
+CLOSED_PARENTHESIS : ')';
+OPEN_BRACE         : '{';
+CLOSED_BRACE       : '}';
+OPEN_BRACKET       : '[';
+CLOSED_BRACKET     : ']';
+COMMA              : ',';
+COLON              : ':';
+
+SingleLineComment: '//' ~[\r\n\u2028\u2029]* -> channel(HIDDEN);
+
+MultiLineComment: '/*' .*? '*/' -> channel(HIDDEN);
+
+StringLiteral: SINGLE_QUOTED_STRING_LITERAL | DOUBLE_QUOTED_STRING_LITERAL;
+
+NullLiteral: 'null';
+
+BooleanLiteral: 'true' | 'false';
+
+NumericLiteral: '-'? DecimalLiteral;
+
+DecimalLiteral:
+    DecimalIntegerLiteral '.' DecimalDigit* ExponentPart?
+    | '.' DecimalDigit+ ExponentPart?
+    | DecimalIntegerLiteral ExponentPart?;
+
+
+// 词法规则（Tokens）
+STRING_LITERAL_               : ((~[",\\ \t\n:.;(){}\-]) | STRING_ESCAPE)+;
+DOUBLE_QUOTED_STRING_LITERAL : '"' ((~["\\]) | STRING_ESCAPE)* '"';
+SINGLE_QUOTED_STRING_LITERAL : '\'' ((~['\\]) | STRING_ESCAPE)* '\'';
+
+fragment STRING_ESCAPE: '\\' ["\\'];
+
+fragment DecimalIntegerLiteral: '0' | [1-9] [0-9_]*;
+
+fragment ExponentPart: [eE] [+-]? [0-9_]+;
+
+fragment DecimalDigit: [0-9];
+
+LineTerminator: [\r\n\u2028\u2029] -> skip;
+WhiteSpaces: [\t\r\n\u000B\u000C\u0020\u00A0]+ -> skip;

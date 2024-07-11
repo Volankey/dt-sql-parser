@@ -1,0 +1,584 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2014 by Bart Kiers (original author) and Alexandre Vitorelli (contributor -> ported to CSharp)
+ * Copyright (c) 2017-2020 by Ivan Kochurkin (Positive Technologies):
+    added ECMAScript 6 support, cleared and transformed to the universal grammar.
+ * Copyright (c) 2018 by Juan Alvarez (contributor -> ported to Go)
+ * Copyright (c) 2019 by Student Main (contributor -> ES2020)
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+// $antlr-format alignTrailingComments true, columnLimit 150, minEmptyLines 1, maxEmptyLinesToKeep 1, reflowComments false, useTab false
+// $antlr-format allowShortRulesOnASingleLine false, allowShortBlocksOnASingleLine true, alignSemiColons hanging, alignColons hanging
+
+parser grammar MongoParser;
+
+// Insert here @header for C++ parser.
+@lexer::members {
+func isExternalIdentifierText(text string) bool {
+	return text == "db"
+}
+}
+@header {
+import JavaScriptParserBase from './JavaScriptParserBase';
+}
+options {
+    tokenVocab = MongoLexer;
+    superClass = JavaScriptParserBase;
+}
+
+program
+    : HashBangLine? sourceElements? EOF
+    ;
+
+mongoCommands
+	: commands EOF
+	;
+
+commands: (command | emptyCommand | comment )+;
+
+command: KW_Db Dot (functionCall | (collection Dot functionCall)) SemiColon?;
+
+emptyCommand
+	: SemiColon
+	;
+
+collection
+	: STRING_LITERAL;
+
+functionCall
+	: FUNCTION_NAME = STRING_LITERAL arguments
+	;
+
+argumentList
+	: literal
+	| objectLiteral
+	| arrayLiteral
+	;
+
+
+elementList
+	: propertyValue ( Comma propertyValue )*
+	;
+
+propertyNameAndValueList
+	: propertyAssignment ( Comma propertyAssignment )*
+	;
+
+
+propertyValue
+	: literal
+	| objectLiteral
+	| arrayLiteral
+	| functionCall
+	;
+comment
+	: SingleLineComment
+	| MultiLineComment
+	;
+
+
+
+sourceElement
+    : statement
+    ;
+
+statement
+    : block
+    | mongoCommands
+    | collection
+    | arguments
+    | variableStatement
+    | emptyStatement_
+    | classDeclaration
+    | functionDeclaration
+    | expressionStatement
+    | ifStatement
+    | iterationStatement
+    | continueStatement
+    | breakStatement
+    | returnStatement
+    | yieldStatement
+    | withStatement
+    | labelledStatement
+    | switchStatement
+    | throwStatement
+    | tryStatement
+    | debuggerStatement
+    ;
+
+block
+    : OpenBrace statementList? CloseBrace
+    ;
+
+statementList
+    : statement+
+    ;
+
+
+moduleExportName
+    : identifierName
+    | StringLiteral
+    ;
+
+// yield and await are permitted as BindingIdentifier in the grammar
+
+
+aliasName
+    : identifierName (KW_As identifierName)?
+    ;
+
+
+exportModuleItems
+    : OpenBrace (exportAliasName Comma)* (exportAliasName Comma?)? CloseBrace
+    ;
+
+exportAliasName
+    : moduleExportName (KW_As moduleExportName)?
+    ;
+
+declaration
+    : variableStatement
+    | classDeclaration
+    | functionDeclaration
+    ;
+
+variableStatement
+    : variableDeclarationList eos
+    ;
+
+variableDeclarationList
+    : varModifier variableDeclaration (Comma variableDeclaration)*
+    ;
+
+variableDeclaration
+    : assignable (Assign singleExpression)? // ECMAScript 6: Array & Object Matching
+    ;
+
+emptyStatement_
+    : SemiColon
+    ;
+
+expressionStatement
+    : {this.notOpenBraceAndNotFunction()}? expressionSequence eos
+    ;
+
+ifStatement
+    : KW_If OpenParen expressionSequence CloseParen statement (KW_Else statement)?
+    ;
+
+iterationStatement
+    : KW_Do statement KW_While OpenParen expressionSequence CloseParen eos                                                                     # DoStatement
+    | KW_While OpenParen expressionSequence CloseParen statement                                                                            # WhileStatement
+    | KW_For OpenParen (expressionSequence | variableDeclarationList)? SemiColon expressionSequence? SemiColon expressionSequence? CloseParen statement # ForStatement
+    | KW_For OpenParen (singleExpression | variableDeclarationList) KW_In expressionSequence CloseParen statement                              # ForInStatement
+    | KW_For Await? OpenParen (singleExpression | variableDeclarationList) KW_Of expressionSequence CloseParen statement                       # ForOfStatement
+    ;
+
+varModifier // let, const - ECMAScript 6
+    : KW_Var
+    | let_
+    | Const
+    ;
+
+continueStatement
+    : KW_Continue ({this.notLineTerminator()}? identifier)? eos
+    ;
+
+breakStatement
+    : KW_Break ({this.notLineTerminator()}? identifier)? eos
+    ;
+
+returnStatement
+    : KW_Return ({this.notLineTerminator()}? expressionSequence)? eos
+    ;
+
+yieldStatement
+    : (KW_Yield | KW_YieldStar) ({this.notLineTerminator()}? expressionSequence)? eos
+    ;
+
+withStatement
+    : KW_With OpenParen expressionSequence CloseParen statement
+    ;
+
+switchStatement
+    : KW_Switch OpenParen expressionSequence CloseParen caseBlock
+    ;
+
+caseBlock
+    : OpenBrace caseClauses? (defaultClause caseClauses?)? CloseBrace
+    ;
+
+caseClauses
+    : caseClause+
+    ;
+
+caseClause
+    : KW_Case expressionSequence Colon statementList?
+    ;
+
+defaultClause
+    : KW_Default Colon statementList?
+    ;
+
+labelledStatement
+    : identifier Colon statement
+    ;
+
+throwStatement
+    : KW_Throw {this.notLineTerminator()}? expressionSequence eos
+    ;
+
+tryStatement
+    : KW_Try block (catchProduction finallyProduction? | finallyProduction)
+    ;
+
+catchProduction
+    : KW_Catch (OpenParen assignable? CloseParen)? block
+    ;
+
+finallyProduction
+    : KW_Finally block
+    ;
+
+debuggerStatement
+    : KW_Debugger eos
+    ;
+
+functionDeclaration
+    : Async? KW_Function_ Multiply? identifier OpenParen formalParameterList? CloseParen functionBody
+    ;
+
+classDeclaration
+    : Class identifier classTail
+    ;
+
+classTail
+    : (Extends singleExpression)? OpenBrace classElement* CloseBrace
+    ;
+
+classElement
+    : (Static | {this.n("static")}? identifier)? methodDefinition
+    | (Static | {this.n("static")}? identifier)? fieldDefinition
+    | (Static | {this.n("static")}? identifier) block
+    | emptyStatement_
+    ;
+
+methodDefinition
+    : (Async {this.notLineTerminator()}?)? Multiply? classElementName OpenParen formalParameterList? CloseParen functionBody
+    | Multiply? getter OpenParen CloseParen functionBody
+    | Multiply? setter OpenParen formalParameterList? CloseParen functionBody
+    ;
+
+fieldDefinition
+    : classElementName initializer?
+    ;
+
+classElementName
+    : propertyName
+    | privateIdentifier
+    ;
+
+privateIdentifier
+    : Hashtag identifierName
+    ;
+
+formalParameterList
+    : formalParameterArg (Comma formalParameterArg)* (Comma lastFormalParameterArg)?
+    | lastFormalParameterArg
+    ;
+
+formalParameterArg
+    : assignable (Assign singleExpression)? // ECMAScript 6: Initialization
+    ;
+
+lastFormalParameterArg // ECMAScript 6: Rest Parameter
+    : Ellipsis singleExpression
+    ;
+
+functionBody
+    : OpenBrace sourceElements? CloseBrace
+    ;
+
+sourceElements
+    : sourceElement+
+    ;
+
+arrayLiteral
+    : (OpenBracket elementList CloseBracket)
+    ;
+
+
+arrayElement
+    : Ellipsis? singleExpression
+    ;
+
+propertyAssignment
+	: propertyName Colon propertyValue
+	;
+
+propertyName
+    : identifierName
+    | StringLiteral
+    | numericLiteral
+    | OpenBracket singleExpression CloseBracket
+    ;
+
+arguments
+    : OpenParen (argument (Comma argument)* Comma?)? CloseParen
+    ;
+
+argument
+    : Ellipsis? (singleExpression | identifier)
+    ;
+
+expressionSequence
+    : singleExpression (Comma singleExpression)*
+    ;
+
+singleExpression
+    : anonymousFunction                                 # FunctionExpression
+    | Class identifier? classTail                       # ClassExpression
+    | singleExpression QuestionMarkDot singleExpression            # OptionalChainExpression
+    | singleExpression QuestionMarkDot? OpenBracket expressionSequence CloseBracket # MemberIndexExpression
+    | singleExpression QuestionMark? Dot Hashtag? identifierName     # MemberDotExpression
+    // Split to try `new Date()` first, then `new Date`.
+    | KW_New identifier arguments                                             # NewExpression
+    | KW_New singleExpression arguments                                       # NewExpression
+    | KW_New singleExpression                                                 # NewExpression
+    | singleExpression arguments                                           # ArgumentsExpression
+    | KW_New Dot identifier                                                   # MetaExpression // new.target
+    | singleExpression {this.notLineTerminator()}? PlusPlus                    # PostIncrementExpression
+    | singleExpression {this.notLineTerminator()}? MinusMinus                    # PostDecreaseExpression
+    | KW_Delete singleExpression                                              # DeleteExpression
+    | KW_Void singleExpression                                                # VoidExpression
+    | KW_Typeof singleExpression                                              # TypeofExpression
+    | PlusPlus singleExpression                                                # PreIncrementExpression
+    | MinusMinus singleExpression                                                # PreDecreaseExpression
+    | Plus singleExpression                                                 # UnaryPlusExpression
+    | Minus singleExpression                                                 # UnaryMinusExpression
+    | BitNot singleExpression                                                 # BitNotExpression
+    | Not singleExpression                                                 # NotExpression
+    | Await singleExpression                                               # AwaitExpression
+    | <assoc = right> singleExpression Power singleExpression               # PowerExpression
+    | singleExpression (Multiply | Divide | Modulus) singleExpression                  # MultiplicativeExpression
+    | singleExpression (Plus | Minus) singleExpression                        # AdditiveExpression
+    | singleExpression NullCoalesce singleExpression                               # CoalesceExpression
+    | singleExpression (LeftShiftArithmetic | RightShiftArithmetic | RightShiftLogical) singleExpression              # BitShiftExpression
+    | singleExpression (LessThan | MoreThan | LessThanEquals | GreaterThanEquals) singleExpression          # RelationalExpression
+    | singleExpression KW_Instanceof singleExpression                         # InstanceofExpression
+    | singleExpression KW_In singleExpression                                 # InExpression
+    | singleExpression (Equals_ | NotEquals | IdentityEquals | IdentityNotEquals) singleExpression      # EqualityExpression
+    | singleExpression BitAnd singleExpression                                # BitAndExpression
+    | singleExpression BitXOr singleExpression                                # BitXOrExpression
+    | singleExpression BitOr singleExpression                                # BitOrExpression
+    | singleExpression And singleExpression                               # LogicalAndExpression
+    | singleExpression Or singleExpression                               # LogicalOrExpression
+    | singleExpression QuestionMark singleExpression Colon singleExpression           # TernaryExpression
+    | <assoc = right> singleExpression Assign singleExpression                # AssignmentExpression
+    | <assoc = right> singleExpression assignmentOperator singleExpression # AssignmentOperatorExpression
+    | singleExpression templateStringLiteral                               # TemplateStringExpression // ECMAScript 6
+    | yieldStatement                                                       # YieldExpression          // ECMAScript 6
+    | KW_This                                                                 # ThisExpression
+    | identifier                                                           # IdentifierExpression
+    | Super                                                                # SuperExpression
+    | literal                                                              # LiteralExpression
+    | arrayLiteral                                                         # ArrayLiteralExpression
+    | objectLiteral                                                        # ObjectLiteralExpression
+    | OpenParen expressionSequence CloseParen                                           # ParenthesizedExpression
+    ;
+
+initializer
+    // TODO: must be `= AssignmentExpression` and we have such label alredy but it doesn't respect the specification.
+    //  See https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-Initializer
+    : Assign singleExpression
+    ;
+
+assignable
+    : identifier
+    | keyword
+    | arrayLiteral
+    | objectLiteral
+    ;
+
+objectLiteral
+    : OpenBrace (propertyAssignment (Comma propertyAssignment)* Comma?)? CloseBrace
+    ;
+
+anonymousFunction
+    : functionDeclaration                                             # NamedFunction
+    | Async? KW_Function_ Multiply? OpenParen formalParameterList? CloseParen functionBody # AnonymousFunctionDecl
+    | Async? arrowFunctionParameters ARROW arrowFunctionBody           # ArrowFunction
+    ;
+
+arrowFunctionParameters
+    : propertyName
+    | OpenParen formalParameterList? CloseParen
+    ;
+
+arrowFunctionBody
+    : singleExpression
+    | functionBody
+    ;
+
+assignmentOperator
+    : MultiplyAssign
+    | DivideAssign
+    | ModulusAssign
+    | PlusAssign
+    | MinusAssign
+    | LeftShiftArithmeticAssign
+    | RightShiftArithmeticAssign
+    | RightShiftLogicalAssign
+    | BitAndAssign
+    | BitXorAssign
+    | BitOrAssign
+    | PowerAssign
+    | NullishCoalescingAssign
+    ;
+
+literal
+    : NullLiteral
+    | BooleanLiteral
+    | StringLiteral
+    | templateStringLiteral
+    | RegularExpressionLiteral
+    | numericLiteral
+    | bigintLiteral
+    ;
+
+templateStringLiteral
+    : BackTick templateStringAtom* BackTick
+    ;
+
+templateStringAtom
+    : TemplateStringAtom
+    | TemplateStringStartExpression singleExpression TemplateCloseBrace
+    ;
+
+numericLiteral
+    : DecimalLiteral
+    | HexIntegerLiteral
+    | OctalIntegerLiteral
+    | OctalIntegerLiteral2
+    | BinaryIntegerLiteral
+    ;
+
+bigintLiteral
+    : BigDecimalIntegerLiteral
+    | BigHexIntegerLiteral
+    | BigOctalIntegerLiteral
+    | BigBinaryIntegerLiteral
+    ;
+
+getter
+    : {this.n("get")}? identifier classElementName
+    ;
+
+setter
+    : {this.n("set")}? identifier classElementName
+    ;
+
+identifierName
+    : identifier
+    | reservedWord
+    ;
+
+identifier
+    : Identifier
+    | NonStrictLet
+    | Async
+    | KW_As
+    | KW_From
+    | KW_Yield
+    | KW_Of
+    ;
+
+reservedWord
+    : keyword
+    | NullLiteral
+    | BooleanLiteral
+    ;
+
+keyword
+    : KW_Break
+    | KW_Do
+    | KW_Instanceof
+    | KW_Typeof
+    | KW_Case
+    | KW_Else
+    | KW_New
+    | KW_Var
+    | KW_Catch
+    | KW_Finally
+    | KW_Return
+    | KW_Void
+    | KW_Continue
+    | KW_For
+    | KW_Switch
+    | KW_While
+    | KW_Debugger
+    | KW_Function_
+    | KW_This
+    | KW_With
+    | KW_Default
+    | KW_If
+    | KW_Throw
+    | KW_Delete
+    | KW_In
+    | KW_Try
+    | Class
+    | Enum
+    | Extends
+    | Super
+    | Const
+    | Export
+    | Implements
+    | let_
+    | Private
+    | Public
+    | Interface
+    | Package
+    | Protected
+    | Static
+    | KW_Yield
+    | KW_YieldStar    
+    | Async
+    | Await
+    | KW_From
+    | KW_As
+    | KW_Of
+    ;
+
+let_
+    : NonStrictLet
+    | StrictLet
+    ;
+
+eos
+    : SemiColon
+    | EOF
+    | {this.lineTerminatorAhead()}?
+    | {this.closeBrace()}?
+    ;

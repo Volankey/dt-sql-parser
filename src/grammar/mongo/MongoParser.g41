@@ -1,0 +1,93 @@
+// $antlr-format alignTrailingComments true, columnLimit 150, minEmptyLines 1, maxEmptyLinesToKeep 1, reflowComments false, useTab false
+// $antlr-format allowShortRulesOnASingleLine false, allowShortBlocksOnASingleLine true, alignSemicolons hanging, alignColons hanging
+// $antlr-format spaceBeforeAssignmentOperators false, keepEmptyLinesAtTheStartOfBlocks true
+parser grammar MongoParser;
+
+// 导入词法分析器
+options {
+    tokenVocab= MongoLexer;
+}
+
+program
+    : mongoCommands
+    ;
+
+// 语法规则
+mongoCommands
+    : commands WhiteSpaces* EOF
+    ;
+
+commands
+    : (command | emptyCommand | comment)+
+    ;
+
+command
+    : KW_DB DOT functionCall SEMICOLON?                # dbFunctionCall
+    | KW_DB DOT collection DOT functionCall SEMICOLON? # collectionFunctionCall
+    ;
+
+emptyCommand
+    : SEMICOLON
+    ;
+
+collection
+    : STRING_LITERAL_
+    ;
+
+functionCall
+    : STRING_LITERAL_ OPENED_PARENTHESIS arguments CLOSED_PARENTHESIS
+    ;
+
+arguments
+    : argumentList?
+    ;
+
+argumentList
+    : literal
+    | objectLiteral
+    | arrayLiteral
+    ;
+
+objectLiteral
+    : OPEN_BRACE propertyNameAndValueList? COMMA? CLOSED_BRACE
+    ;
+
+arrayLiteral
+    : (OPEN_BRACKET (elementList)? CLOSED_BRACKET)
+    ;
+
+elementList
+    : propertyValue (COMMA propertyValue)*
+    ;
+
+propertyNameAndValueList
+    : propertyAssignment (COMMA propertyAssignment)*
+    ;
+
+propertyAssignment
+    : propertyName ':' propertyValue
+    ;
+
+propertyValue
+    : literal
+    | objectLiteral
+    | arrayLiteral
+    | functionCall
+    ;
+
+literal
+    : NullLiteral
+    | BooleanLiteral
+    | StringLiteral
+    | NumericLiteral
+    ;
+
+propertyName
+    : STRING_LITERAL_
+    | StringLiteral
+    ;
+
+comment
+    : SingleLineComment
+    | MultiLineComment
+    ;

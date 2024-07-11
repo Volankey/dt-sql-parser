@@ -26,3 +26,6 @@ export {
 export {
     SQLiteParserVisitor
 } from './sqlite/SQLiteParserVisitor';
+
+export { mongoListener as MongoParserListener } from './mongo/mongoListener'
+export { mongoVisitor as MongoParserVisitor } from './mongo/mongoVisitor'
