@@ -1,6 +1,6 @@
 {
-  "name": "dt-sql-parser",
-  "version": "4.0.1",
+  "name": "@volankey/dt-sql-parser",
+  "version": "4.0.3",
   "authors": "DTStack Corporation",
   "description": "SQL Parsers for BigData, built with antlr4",
   "keywords": [

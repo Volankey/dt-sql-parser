@@ -10,8 +10,6 @@ import { SQLParserBase } from '../SQLParserBase';
 
 import { ProgramContext } from "./SQLiteParser.js";
 import { SingleStmtContext } from "./SQLiteParser.js";
-import { ParseContext } from "./SQLiteParser.js";
-import { Sql_stmt_listContext } from "./SQLiteParser.js";
 import { Sql_stmtContext } from "./SQLiteParser.js";
 import { Alter_table_stmtContext } from "./SQLiteParser.js";
 import { Analyze_stmtContext } from "./SQLiteParser.js";
@@ -150,26 +148,6 @@ export class SQLiteParserListener implements ParseTreeListener {
      * @param ctx the parse tree
      */
     exitSingleStmt?: (ctx: SingleStmtContext) => void;
-    /**
-     * Enter a parse tree produced by `SQLiteParser.parse`.
-     * @param ctx the parse tree
-     */
-    enterParse?: (ctx: ParseContext) => void;
-    /**
-     * Exit a parse tree produced by `SQLiteParser.parse`.
-     * @param ctx the parse tree
-     */
-    exitParse?: (ctx: ParseContext) => void;
-    /**
-     * Enter a parse tree produced by `SQLiteParser.sql_stmt_list`.
-     * @param ctx the parse tree
-     */
-    enterSql_stmt_list?: (ctx: Sql_stmt_listContext) => void;
-    /**
-     * Exit a parse tree produced by `SQLiteParser.sql_stmt_list`.
-     * @param ctx the parse tree
-     */
-    exitSql_stmt_list?: (ctx: Sql_stmt_listContext) => void;
     /**
      * Enter a parse tree produced by `SQLiteParser.sql_stmt`.
      * @param ctx the parse tree

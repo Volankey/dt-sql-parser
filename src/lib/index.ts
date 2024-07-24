@@ -29,3 +29,6 @@ export {
 
 export { mongoListener as MongoParserListener } from './mongo/mongoListener'
 export { mongoVisitor as MongoParserVisitor } from './mongo/mongoVisitor'
+
+export { DuckDBParserListener } from './duckdb/DuckDBParserListener';
+export { DuckDBParserVisitor } from './duckdb/DuckDBParserVisitor';

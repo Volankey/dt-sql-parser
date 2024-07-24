@@ -44,19 +44,15 @@ import { SQLParserBase } from '../SQLParserBase';
 // Top Level Description
 
 program
-    : (sql_stmt_list)* EOF
+    : singleStmt* EOF
     ;
+
+// parse
+//     : (sql_stmt_list)* EOF
+//     ;
 
 singleStmt
-    : sql_stmt SEMI?
-    ;
-
-parse
-    : (sql_stmt_list)* EOF
-    ;
-
-sql_stmt_list
-    : SCOL* sql_stmt (SCOL+ sql_stmt)* SCOL*
+    : sql_stmt SCOL?
     ;
 
 sql_stmt

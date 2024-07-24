@@ -6,7 +6,7 @@ export class SQLiteSplitListener
     extends SplitListener<SingleStmtContext>
     implements SQLiteParserListener
 {
-    exitSingleStatement(ctx: SingleStmtContext) {
+    exitSingleStmt(ctx: SingleStmtContext) {
         this._statementsContext.push(ctx);
     }
 }

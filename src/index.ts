@@ -7,6 +7,8 @@ export {
     TrinoSQL,
     ImpalaSQL,
     Mongo,
+    SQLite,
+    DuckDB,
 } from './parser';
 
 export {
@@ -28,6 +30,8 @@ export {
     SQLiteParserVisitor,
     MongoParserListener,
     MongoParserVisitor,
+    DuckDBParserListener,
+    DuckDBParserVisitor,
 } from './lib';
 
 export { EntityContextType } from './parser/common/types';
